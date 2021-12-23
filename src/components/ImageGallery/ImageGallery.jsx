@@ -1,91 +1,71 @@
-import { Component } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 
-import { fetchAPI } from '../../servises/getApi';
-import ImageDataView from './ImageDataView';
-import Spinner from '../Loader';
+import { fetchAPI } from "../../servises/getApi";
+import ImageDataView from "./ImageDataView";
+import Spinner from "../Loader";
 
-import s from './ImageGallery.module.css';
+import s from "./ImageGallery.module.css";
 
 const Status = {
-  IDLE: 'idle',
-  PENDING: 'pending',
-  RESOLVED: 'resolved',
-  REJECTED: 'rejected',
+  IDLE: "idle",
+  PENDING: "pending",
+  RESOLVED: "resolved",
+  REJECTED: "rejected",
 };
 
-export default class ImageGallery extends Component {
-  state = {
-    imagesArray: [],
-    page: 1,
-    status: Status.IDLE,
-  };
+export default function ImageGallery({ imageName, openModal }) {
+  const [imagesArray, setImagesArray] = useState([]);
+  const [page, setPage] = useState(1);
+  const [status, setStatus] = useState(Status.IDLE);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const prevName = prevProps.imageName;
-    const nextName = this.props.imageName;
-    const prevPage = prevState.page;
-    const nextPage = this.state.page;
-
-    if (prevName !== nextName) {
-      this.setState({ imagesArray: [] });
+  useEffect(() => {
+    if (!imageName) {
+      return;
     }
+    setStatus(Status.PENDING);
 
-    if (prevName !== nextName || prevPage !== nextPage) {
-      this.setState({ status: Status.PENDING });
-      try {
-        const { hits, totalHits } = await fetchAPI(nextName, nextPage);
-
-        if (hits.length === 0 && totalHits === 0) {
-          return toast.info('Try to input next name... ');
-        }
-        if (hits.length === 0 && totalHits !== 0) {
-          return toast.info('Nothing more found');
-        }
-
-        this.setState(({ imagesArray }) => ({
-          imagesArray: [...imagesArray, ...hits],
-          status: Status.RESOLVED,
-        }));
-      } catch (error) {
-        console.error(error);
+    try {
+      const { hits, totalHits } = fetchAPI(imageName, page);
+      if (hits.length === 0 && totalHits === 0) {
+        return toast.info("Try to input next name... ");
       }
+      if (hits.length === 0 && totalHits !== 0) {
+        return toast.info("Nothing more found");
+      }
+      setImagesArray((prevImagesArray) => [...prevImagesArray, ...hits]);
+      setStatus(Status.RESOLVED);
+    } catch (error) {
+      console.error(error);
     }
-  }
+  }, [imageName, page]);
 
-  updatePage = () => {
-    this.setState(prevState => {
-      return { page: prevState.page + 1 };
-    });
+  const updatePage = () => {
+    setPage((page) => page + 1);
   };
 
-  render() {
-    const { imagesArray, status } = this.state;
-    const { openModal } = this.props;
+  return (
+    <>
+      {status === "idle" && (
+        <h1 className={s.title}>What do you want to see?</h1>
+      )}
 
-    return (
-      <>
-        {status === 'idle' && (
-          <h1 className={s.title}>What do you want to see?</h1>
-        )}
+      {status === "pending" && <Spinner />}
 
-        {status === 'pending' && <Spinner />}
+      {(status === "resolved" || status === "pending") && (
+        <ImageDataView
+          imagesArray={imagesArray}
+          openModal={openModal}
+          loadMore={updatePage}
+        />
+      )}
 
-        {(status === 'resolved' || status === 'pending') && (
-          <ImageDataView
-            imagesArray={imagesArray}
-            openModal={openModal}
-            loadMore={this.updatePage}
-          />
-        )}
-
-        {status === 'rejected' &&
-          toast.error('We are sorry but something went wrong')}
-      </>
-    );
-  }
+      {status === "rejected" &&
+        toast.error("We are sorry but something went wrong")}
+    </>
+  );
 }
 
 ImageGallery.propTypes = {
