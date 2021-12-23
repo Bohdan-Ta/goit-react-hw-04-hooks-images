@@ -20,26 +20,33 @@ export default function ImageGallery({ imageName, openModal }) {
   const [imagesArray, setImagesArray] = useState([]);
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState(Status.IDLE);
+  const [prevName, setPrevName] = useState(null);
 
   useEffect(() => {
     if (!imageName) {
       return;
     }
-    setStatus(Status.PENDING);
 
-    try {
-      const { hits, totalHits } = fetchAPI(imageName, page);
+    if (prevName !== imageName) {
+      setImagesArray([]);
+    }
+
+    setStatus(Status.PENDING);
+    const fetchData = async () => {
+      const result = await fetchAPI(imageName, page);
+      const { hits, totalHits } = result;
       if (hits.length === 0 && totalHits === 0) {
         return toast.info("Try to input next name... ");
       }
       if (hits.length === 0 && totalHits !== 0) {
         return toast.info("Nothing more found");
       }
+      setPrevName(imageName);
       setImagesArray((prevImagesArray) => [...prevImagesArray, ...hits]);
       setStatus(Status.RESOLVED);
-    } catch (error) {
-      console.error(error);
-    }
+    };
+
+    fetchData();
   }, [imageName, page]);
 
   const updatePage = () => {
