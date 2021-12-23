@@ -32,18 +32,23 @@ export default function ImageGallery({ imageName, openModal }) {
     }
 
     setStatus(Status.PENDING);
+
     const fetchData = async () => {
-      const result = await fetchAPI(imageName, page);
-      const { hits, totalHits } = result;
-      if (hits.length === 0 && totalHits === 0) {
-        return toast.info("Try to input next name... ");
+      try {
+        const result = await fetchAPI(imageName, page);
+        const { hits, totalHits } = result;
+        if (hits.length === 0 && totalHits === 0) {
+          return toast.info("Try to input next name... ");
+        }
+        if (hits.length === 0 && totalHits !== 0) {
+          return toast.info("Nothing more found");
+        }
+        setPrevName(imageName);
+        setImagesArray((prevImagesArray) => [...prevImagesArray, ...hits]);
+        setStatus(Status.RESOLVED);
+      } catch (error) {
+        console.error(error);
       }
-      if (hits.length === 0 && totalHits !== 0) {
-        return toast.info("Nothing more found");
-      }
-      setPrevName(imageName);
-      setImagesArray((prevImagesArray) => [...prevImagesArray, ...hits]);
-      setStatus(Status.RESOLVED);
     };
 
     fetchData();
