@@ -23,17 +23,15 @@ export default function ImageGallery({ imageName, openModal }) {
   const [prevName, setPrevName] = useState(null);
 
   useEffect(() => {
-    if (!imageName) {
-      return;
-    }
-
-    if (prevName !== imageName) {
-      setImagesArray([]);
-    }
-
-    setStatus(Status.PENDING);
-
     const fetchData = async () => {
+      if (!imageName) {
+        return;
+      }
+
+      if (prevName !== imageName) {
+        setImagesArray([]);
+      }
+      setStatus(Status.PENDING);
       try {
         const result = await fetchAPI(imageName, page);
         const { hits, totalHits } = result;

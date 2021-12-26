@@ -9,17 +9,17 @@ import Modal from "../Modal";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function App() {
-  const [searchValue, setsearchValue] = useState("");
-  const [showModal, setshowModal] = useState(false);
-  const [modalPicture, setmodalPicture] = useState({ src: "", alt: "" });
+  const [searchValue, setSearchValue] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [modalPicture, setModalPicture] = useState({ src: "", alt: "" });
 
   const getNameImage = (searchValue) => {
-    setsearchValue(searchValue);
+    setSearchValue(searchValue);
   };
 
   const toggleModal = (src, alt) => {
-    setshowModal(!showModal);
-    setmodalPicture({ src, alt });
+    setShowModal(!showModal);
+    setModalPicture({ src, alt });
   };
 
   return (
